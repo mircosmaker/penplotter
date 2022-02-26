@@ -1,6 +1,6 @@
 #include <math.h>
 
-enum newType{AVVIO, CALIBRAZIONE, INVIO_CALIBRAZIONE, MOVIMENTO, FINE_RIAVVIO};
+enum newType{AVVIO, INCALIBRAZIONE, FINECALIBRAZIONE, RICEVIMENTO, ESECUZIONE, FINE};
 
 char risposta;
 boolean risp;
@@ -20,7 +20,6 @@ void car_to_pc();
 void bytes_to_pc();
 void bytes_from_pc();
 void leggi_cestina();
-void ricomponiNum();
 boolean controllaBuffer();
 
 void setup()
@@ -39,24 +38,25 @@ void loop()
     if(risp==true)
     {
       cestino = Serial.read(); 
-      stato = CALIBRAZIONE;
+      stato = INCALIBRAZIONE;
     }  
   }
   
-  stato = INVIO_CALIBRAZIONE;
+  stato = FINECALIBRAZIONE;
   nCaratteri=8;
   lungVett=2;
   dati[0]=millimetriXMax;
   dati[1]=millimetriYMax;
   bytes_to_pc();
   
-  stato = MOVIMENTO;
-  bytes_from_pc();
-  Serial.write(nCaratteri);
-  Serial.write(dati[0]);
-  Serial.write(dati[1]);
-  bytes_to_pc();
-  stato = FINE_RIAVVIO;
+  do{
+    stato = RICEVIMENTO;
+    car_to_pc('i');
+    bytes_from_pc();
+    bytes_to_pc();    
+    stato = ESECUZIONE;
+  }while(controllaBuffer()==true);
+  stato = FINE;
 }
 
 void car_to_pc(char car)
@@ -85,20 +85,8 @@ void bytes_from_pc()
     delay(50);
   nCaratteri = Serial.read();
   leggi_cestina();
-  int y=0;
-  for(int i=0;i<nCaratteri-1;i++)//controllare il funzionamento del for e la ricezione dei byte
-  {
-    if(i != (nCaratteri-1)/2)
-    {
-      while(Serial.available()==0)
-      delay(50);
-      dati[y] = Serial.read();
-      y++;
-    }
-    else
-      leggi_cestina();
-  }
-  ricomponiNum();
+  for(int i=0;i<2;i++)
+    dati[i]=Serial.parseInt();
 }
 
 void leggi_cestina()
@@ -106,25 +94,6 @@ void leggi_cestina()
   while(Serial.available()==0)
     delay(50);
   cestino = Serial.read();
-}
-
-void ricomponiNum()
-{
-  lungVett = (nCaratteri-2)/2;
-  int y,i,aus;
-  i=0;
-  for(int k=0;k<2;k++)
-  {
-    y=lungVett-1;
-    aus=0;
-    lungVett+=lungVett;
-    for(i;i<lungVett;i++)
-    {
-      aus+= dati[i]*pow(10,y);
-      y--;
-    }
-    dati[k];
-  }
 }
 
 boolean controllaBuffer()
