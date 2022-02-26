@@ -19,7 +19,6 @@ newType stato;
 void car_to_pc();
 void bytes_to_pc();
 void bytes_from_pc();
-void leggi_cestina();
 boolean controllaBuffer();
 
 void setup()
@@ -83,17 +82,13 @@ void bytes_from_pc()
 {
   while(Serial.available()==0)
     delay(50);
-  nCaratteri = Serial.read();
-  leggi_cestina();
-  for(int i=0;i<2;i++)
-    dati[i]=Serial.parseInt();
-}
-
-void leggi_cestina()
-{
-  while(Serial.available()==0)
-    delay(50);
-  cestino = Serial.read();
+  for(int i=0;i<3;i++)
+    {
+      if(i==0)
+        nCaratteri=Serial.parseInt();
+      else  
+        dati[i-1]=Serial.parseInt();
+    }
 }
 
 boolean controllaBuffer()
